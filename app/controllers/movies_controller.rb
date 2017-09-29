@@ -11,11 +11,23 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if params.has_key?(:sort_by)
+    @all_ratings = Movie.ratings
+    
+    if @is_checked = nil
+      @is_checked = Movie.init_is_rating_checked
+    end
+    
+    if params.has_key?(:ratings)
+      @is_checked = Movie.is_rating_checked(params[:ratings])
+      
+      keys = params[:ratings].keys
+      @movies = Movie.where(rating: keys)
+    
+    elsif params.has_key?(:sort_by)
       # sorting the movies by sort_by param
       @movies = Movie.order(params[:sort_by]).all
 
-      # setting hilite class variable
+      # setting hilite class for css highlight
       if params[:sort_by] == "title"
         @hilite_title = "hilite"
         @hilite_release_date = ""
