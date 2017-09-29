@@ -13,7 +13,7 @@ class MoviesController < ApplicationController
   def index
     @all_ratings = Movie.ratings
     
-    if @is_checked = nil
+    if @is_checked == nil
       @is_checked = Movie.init_is_rating_checked
     end
     
