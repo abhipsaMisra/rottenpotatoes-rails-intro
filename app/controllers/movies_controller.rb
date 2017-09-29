@@ -17,27 +17,55 @@ class MoviesController < ApplicationController
       @is_checked = Movie.init_is_rating_checked
     end
     
-    if params.has_key?(:ratings)
-      @is_checked = Movie.is_rating_checked(params[:ratings])
-      
-      keys = params[:ratings].keys
-      @movies = Movie.where(rating: keys)
+    @movies = Movie.all
     
-    elsif params.has_key?(:sort_by)
-      # sorting the movies by sort_by param
-      @movies = Movie.order(params[:sort_by]).all
-
-      # setting hilite class for css highlight
-      if params[:sort_by] == "title"
-        @hilite_title = "hilite"
-        @hilite_release_date = ""
-      else
-        @hilite_title = ""
-        @hilite_release_date = "hilite"
-      end
-
+    if params.has_key?(:ratings)
+      session[:ratings] = params[:ratings]
+    end
+    
+    if params.has_key?(:sort_by)
+      session[:sort_by] = params[:sort_by]
+    end
+    
+    check_for_redirect()
+    
+    if session.has_key?(:ratings)
+      filter_movies(session[:ratings])
+    end
+    
+    if session.has_key?(:sort_by)
+      sort_movies(session[:sort_by])
+    end
+    
+  end
+  
+  def check_for_redirect
+    if (session.has_key?(:ratings) ^ params.has_key?(:ratings)) || (session.has_key?(:sort_by) ^ params.has_key?(:sort_by))
+      new_params = Hash.new
+      new_params[:ratings] = session[:ratings]
+      new_params[:sort_by] = session[:sort_by]
+      
+      flash.keep
+      
+      redirect_to movies_path(new_params)
+    end
+  end
+  
+  def filter_movies(ratings)
+    @is_checked = Movie.is_rating_checked(session[:ratings])
+    keys = session[:ratings].keys
+    @movies = Movie.where(rating: keys)
+  end
+  
+  def sort_movies(sort_by)
+    if sort_by == "title"
+      @movies = @movies.sort {|a, b| a.title <=> b.title}
+      @hilite_title = "hilite"
+      @hilite_release_date = ""
     else
-      @movies = Movie.all
+      @movies = @movies.sort {|a, b| a.release_date <=> b.release_date}
+      @hilite_title = ""
+      @hilite_release_date = "hilite"
     end
   end
 
